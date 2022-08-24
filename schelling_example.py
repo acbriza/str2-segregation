@@ -118,7 +118,8 @@ def play(map, episodes, iterations, eps=1e-6):
             print("I: %d\tTime Elapsed: %.2f" % (t+1, avg_time), end='\r')
             if abs(next_state - state).sum() < eps:
                 c += 1
-
+            if t%250==0:
+                print(t, end = '|')
             if t == (iterations - 1) or c == 20:
                 break
 
