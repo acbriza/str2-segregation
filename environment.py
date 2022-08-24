@@ -81,9 +81,10 @@ class Environment:
         else:
             self.name = abs(hash(tuple([self] + self.args)))
 
-        if not os.path.isdir(str(self.name)):
-            os.mkdir(str(self.name))
-            os.mkdir(str(self.name)+'/episodes')
+        if not os.path.isdir('outputs/'+str(self.name)):
+            #. os.mkdir(str(self.name))
+            #. os.mkdir(str(self.name)+'/episodes')
+            os.makedirs('outputs/'+str(self.name)+'/episodes', exist_ok=True)
             self.map, self.agents, self.loc_to_agent, self.id_to_agent = self._generate_map()
             self._set_initial_states()
             self.mask = self._get_mask()
@@ -243,17 +244,17 @@ class Environment:
         a_ids = " ".join(a_ids)
         b_ids = " ".join(b_ids)
 
-        with open("%s/episodes/a_age.csv" % self.name, "a") as f:
+        with open("outputs/%s/episodes/a_age.csv" % self.name, "a") as f:
             f.write("%s, %s, %s\n" % (self.iteration, a_ages, a_ids))
 
-        with open("%s/episodes/b_age.csv" % self.name, "a") as f:
+        with open("outputs/%s/episodes/b_age.csv" % self.name, "a") as f:
             f.write("%s, %s, %s\n" % (self.iteration, b_ages, b_ids))
 
         if self.iteration == self.max_iteration - 1:
             A_losses = self.A_mind.get_losses()
             B_losses = self.B_mind.get_losses()
-            np.save("%s/episodes/a_loss.npy" % self.name, np.array(A_losses))
-            np.save("%s/episodes/b_loss.npy" % self.name, np.array(B_losses))
+            np.save("outputs/%s/episodes/a_loss.npy" % self.name, np.array(A_losses))
+            np.save("outputs/%s/episodes/b_loss.npy" % self.name, np.array(B_losses))
 
     def shuffle(self):
         map = np.zeros(self.size)
@@ -281,13 +282,13 @@ class Environment:
         self.records.append(rews)
 
     def save(self, episode):
-        f = gzip.GzipFile('%s/crystal.npy.gz' % self.name, "w")
+        f = gzip.GzipFile('outputs/%s/crystal.npy.gz' % self.name, "w")
         np.save(f, self.crystal)
         f.close()
 
     def save_agents(self):
         self.lock.acquire()
-        pickle.dump(self.agents, open("agents/agent_%s.p" % (self.name), "wb" ))
+        pickle.dump(self.agents, open("outputs/agents/agent_%s.p" % (self.name), "wb" ))
         self.lock.release()
 
     def get_agent_state(self, agent):
@@ -320,7 +321,7 @@ class Environment:
         return fov
 
     def _to_csv(self, episode):
-        with open("episodes/%s_%s.csv" % (episode, self.name), 'w') as f:
+        with open("outputs/episodes/%s_%s.csv" % (episode, self.name), 'w') as f:
             f.write(', '.join(self.records[0].keys()) + '\n')
             proto = ", ".join(['%.3f' for _ in range(len(self.records[0]))]) + '\n'
             for rec in self.records:
