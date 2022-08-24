@@ -149,8 +149,10 @@ if __name__ == '__main__':
             "Agent Field of View"]
 
     society = Schelling
-
+    start_time = time.time()
     play(society((50, 50), agent_range = int(agent_range),
         prey_reward = int(prey_reward), name=name,
         agent_max_age = int(max_age), max_iteration = int(iterations),
         lock=l, alpha=float(alpha), beta=float(beta), gamma=float(gamma)), 1, iterations)
+    seconds = round(time.time() - start_time)
+    print(f"------ Experiment duration: {seconds/60:.2f} minutes ------")
