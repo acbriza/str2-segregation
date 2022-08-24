@@ -96,6 +96,9 @@ class Mind:
             with torch.no_grad():
                 state = torch.FloatTensor([[state]], device=self.device)
                 age = torch.FloatTensor([[age]], device=self.device)
+                #. convert list to numpy, as suggested in warning
+                # state = torch.FloatTensor(np.array([[state]]), device=self.device)
+                # age = torch.FloatTensor(np.array([[age]]), device=self.device)
                 q_values = self.network(type * state, age)
                 return q_values.max(1)[1].view(1, 1).detach().item()
         else:
@@ -144,6 +147,12 @@ class Mind:
         batch_action = torch.cat([torch.LongTensor(s) for s in batch_action]).view((self.BATCH_SIZE, 1))
         batch_reward = torch.cat([torch.FloatTensor(s) for s in batch_reward])
         batch_next_state = torch.cat([torch.FloatTensor(s) for s in batch_next_state])
+        #. convert list to numpy, as suggested in warning
+        # batch_state = torch.cat([torch.FloatTensor(np.array(s)) for s in batch_state])
+        # batch_age = torch.cat([torch.FloatTensor(np.array(s)) for s in batch_age]).view((self.BATCH_SIZE, 1))
+        # batch_action = torch.cat([torch.LongTensor(np.array(s)) for s in batch_action]).view((self.BATCH_SIZE, 1))
+        # batch_reward = torch.cat([torch.FloatTensor(np.array(s)) for s in batch_reward])
+        # batch_next_state = torch.cat([torch.FloatTensor(np.array(s)) for s in batch_next_state])
 
         expected_q_values = batch_reward
         return (batch_state, batch_age, batch_action, batch_next_state, batch_done, expected_q_values)
