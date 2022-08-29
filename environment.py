@@ -123,8 +123,8 @@ class Environment:
        
         #.get possible new locations (that are unoccupied)
         locs = []
-        for di in range(1, self.range+1):
-            for dj in range(1, self.range+1):
+        for di in range(1, self.hzn+1):
+            for dj in range(1, self.hzn+1):
                 (i_n, j_n) = self._add((i, j), (di, dj)) 
                 if self.map[i_n, j_n] == 0:
                     locs.append((i_n, j_n))        
@@ -143,6 +143,7 @@ class Environment:
         #. we are sure that loc is empty
         self.loc_to_agent[loc] = victim
         #.set victim's new location; ensure it is alive; clear decision
+        #victim.set_loc(loc)
         victim.respawn(loc)  #.!monitor this 
         #.set new state of victim since location has changed
         victim.set_current_state(self.get_agent_state(victim)) 
