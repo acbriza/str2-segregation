@@ -116,6 +116,37 @@ class Environment:
         self.loc_to_agent[to] = agent
         del self.loc_to_agent[loc]
 
+    def move_victim(self, victim):
+        """ move victim to within field view 
+        """
+        (i, j) = loc = victim.get_loc()
+       
+        #.get possible new locations (that are unoccupied)
+        locs = []
+        for di in range(1, self.range+1):
+            for dj in range(1, self.range+1):
+                (i_n, j_n) = self._add((i, j), (di, dj)) 
+                if self.map[i_n, j_n] == 0:
+                    locs.append((i_n, j_n))        
+
+        #. if unoccupied cell found
+        if len(locs)>0:
+            #. clear previous location of victim
+            self.map[i, j] = 0
+            del self.loc_to_agent[loc]  
+        else:
+            assert False, 'Environment.move_victim: No available space to move to'
+
+        idx = np.random.choice(range(len(locs)))
+        (i, j) = loc = locs[idx]
+        self.map[i, j] = victim.get_type()
+        #. we are sure that loc is empty
+        self.loc_to_agent[loc] = victim
+        #.set victim's new location; ensure it is alive; clear decision
+        victim.respawn(loc)  #.!monitor this 
+        #.set new state of victim since location has changed
+        victim.set_current_state(self.get_agent_state(victim)) 
+
     def step(self, agent, by):
         if agent.is_alive() and agent.get_time_remaining() == 0:
             rew = self.kill(agent)
