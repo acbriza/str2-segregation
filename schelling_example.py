@@ -37,6 +37,7 @@ class Schelling(Environment):
         self.alive_reward = 0.1
 
     def default(self, agent):
+        #. default reward; calculates shelling reward as s-alpha*d (s=same; d=different)
         curr = self.get_agent_state(agent)
         prev = agent.get_state()
         default = (agent.get_type() * (curr - prev))

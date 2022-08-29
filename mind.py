@@ -10,7 +10,7 @@ import numpy as np
 class Mind:
     BATCH_SIZE = 256
     GAMMA = 0.98
-    EPS_START = 0.9999
+    EPS_START = 0.9999 #.epsilon?
     EPS_END = 0
     EPS_DECAY = 100000
     TAU = 0.05
@@ -29,7 +29,7 @@ class Mind:
 
 
         self.memory = ReplayMemory(memory_length)
-        self.optimizer = optim.Adam(self.network.parameters(), 0.001)
+        self.optimizer = optim.Adam(self.network.parameters(), 0.001) #.001 is probably learning rate
         self.steps_done = 0
         self.num_actions = num_actions
 
@@ -93,15 +93,17 @@ class Mind:
             np.exp(-1. * self.steps_done / self.EPS_DECAY)
         self.steps_done += 1
         if sample > eps_threshold:
+            #. with probability 1-eps_threshold, choose max action
             with torch.no_grad():
                 state = torch.FloatTensor([[state]], device=self.device)
                 age = torch.FloatTensor([[age]], device=self.device)
                 #. convert list to numpy, as suggested in warning
-                # state = torch.FloatTensor(np.array([[state]]), device=self.device)
-                # age = torch.FloatTensor(np.array([[age]]), device=self.device)
+                #. state = torch.FloatTensor(np.array([[state]]), device=self.device)
+                #. age = torch.FloatTensor(np.array([[age]]), device=self.device)
                 q_values = self.network(type * state, age)
                 return q_values.max(1)[1].view(1, 1).detach().item()
         else:
+            #. with small probability eps_threshold, choose a random action
             rand = [[random.randrange(self.num_actions)]]
             return torch.tensor(rand, device=self.device, dtype=torch.long).detach().item()
 
@@ -197,12 +199,13 @@ class DQN(nn.Module):
     hidden = 16
     def __init__(self, num_features, num_actions):
         super(DQN, self).__init__()
-        self.l1 = nn.Conv2d(1, self.hidden, 3) # 3
-        self.l2 = nn.Conv2d(self.hidden, self.hidden, 3) # 5
+        #. Conv2d(input channels, output channels, conv_size)
+        self.l1 = nn.Conv2d(1, self.hidden, 3) # 3             #. 16x16 x 3x3
+        self.l2 = nn.Conv2d(self.hidden, self.hidden, 3) # 5   #. 16x16 x 3x3
         self.l3 = nn.Conv2d(self.hidden, self.hidden, 3) # 7
         self.l4 = nn.Conv2d(self.hidden, self.hidden, 3) # 9
         self.l5 = nn.Conv2d(self.hidden, self.hidden, 3) # 11
-        self.out = nn.Linear(self.hidden + 1, num_actions)
+        self.out = nn.Linear(self.hidden + 1, num_actions)     #. 17x5; +1 for the age feature?
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -210,8 +213,12 @@ class DQN(nn.Module):
 
     def forward(self, x, age, relu=False):
         [N, a, b, c] = x.size()
+        #. debug print("N, a, b, c",N, a, b, c)
         x = F.relu(self.l5(F.relu(self.l4(F.relu(self.l3(F.relu(self.l2(F.relu(self.l1(x))))))))))
-        x = x.mean(-1).mean(-1)
-        x = torch.cat([x, age], dim=1)
-        out = self.out(x)
+        #. debug print("x.shape",x.shape)
+        x = x.mean(-1).mean(-1)         #. is this the normalization?
+        #. debug print("x.shape post mean",x.shape)
+        x = torch.cat([x, age], dim=1)  #.catenate age and field view #. 17x5        
+        out = self.out(x) 
+        #. debug assert False, 'Break experiment' (just check shape of x)
         return F.relu(out) if relu else out

@@ -22,6 +22,7 @@ from agent import Agent
 from mind import Mind
 
 class Environment:
+    #. Schelling example: p_hunter = 0.05, p_prey = 0
     def __init__(self, size, p_hunter, p_prey,
             prey_reward = 1, stuck_penalty = 1,
             death_penalty = 1, p_resurrection = 0.2,
@@ -41,6 +42,7 @@ class Environment:
 
         self.max_iteration = max_iteration
         self.lock = lock
+        #. use same network?
         if same:
             weights = self.A_mind.network.state_dict()
             self.B_mind.network.load_state_dict(weights)
@@ -66,11 +68,12 @@ class Environment:
         self.id_to_type = {}
         self.id_to_lives = {}
 
-        self.crystal = np.zeros((max_iteration, H, W, 3)) # type, age, id
+        self.crystal = np.zeros((max_iteration, H, W, 3)) #. channels: type, age, id (overwritten below)
         self.history = []
         self.id_track = []
         self.records = []
 
+        #.used for definining a default name
         self.args = [self.prey_reward,
                 self.stuck_penalty,
                 self.death_penalty,
@@ -88,7 +91,7 @@ class Environment:
             self.map, self.agents, self.loc_to_agent, self.id_to_agent = self._generate_map()
             self._set_initial_states()
             self.mask = self._get_mask()
-            self.crystal = np.zeros((max_iteration, H, W, 4)) # type, age, tr,  id
+            self.crystal = np.zeros((max_iteration, H, W, 4)) #.channels type, age, time remaining,  id
             self.iteration = 0
         else:
             assert False, "There exists an experiment with this name."
@@ -292,9 +295,10 @@ class Environment:
         self.lock.release()
 
     def get_agent_state(self, agent):
+        #. get field of view of agent, according to his range (self.hzn)
         hzn = self.hzn
         i, j = agent.get_loc()
-        fov = np.zeros((2 * hzn + 1, 2 *  hzn + 1)) - 2
+        fov = np.zeros((2 * hzn + 1, 2 *  hzn + 1)) - 2 #.set to -2: void or invalid
         if self.boundary_exists:
             start_i, end_i, start_j, end_j = 0, 2 * hzn + 1, 0, 2 * hzn + 1
             if i < hzn:
@@ -348,13 +352,17 @@ class Environment:
         return np.array(mask)
 
     def _generate_map(self):
-        map = np.zeros(self.size)
+        map = np.zeros(self.size) #.Schelling: (50,50)
         loc_to_agent = {}
         id_to_agent = {}
         agents = []
         idx = 0
         for i, row in enumerate(map):
             for j, col in enumerate(row):
+                #.get agent type in cell i,j according to self.probs
+                #.self.probs for agents 1,0,-1,-2 is 
+                #. [p_hunter, 1 - 2*p_hunter - p_prey, p_hunter, p_prey]
+                #. Schelling example: p_hunter = 0.05, p_prey = 0
                 val = np.random.choice(self.vals, p=self.probs)
                 if not val == self.names_to_vals["free"]:
                     if val == self.names_to_vals["A"]:
@@ -363,6 +371,8 @@ class Environment:
                         mind = self.B_mind
                     else:
                         assert False, 'Error'
+                    #. val is -1,0,1 (A,Free,B)
+                    #. self.probs = unused in Agent
                     agent = Agent(idx, (i, j), val, mind,  self.probs[1], self.agent_max_age)
                     loc_to_agent[(i, j)] = agent
                     id_to_agent[idx] = agent
@@ -384,6 +394,8 @@ class Environment:
             agent.set_current_state(state)
 
     def _count(self, arr):
+        #. includes free and prey cells
+        #.unused
         cnt = np.zeros(len(self.vals))
         arr = arr.reshape(-1)
         for elem in arr:

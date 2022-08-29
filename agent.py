@@ -1,6 +1,8 @@
 import numpy as np
 
 class Agent:
+    #.p is probabilities - unused
+    #.p_void - unused
     def __init__(self, id, loc, type, mind, p, max_time):
         self.id = id
         self.alive = True
@@ -9,7 +11,7 @@ class Agent:
         self.current_state = None
         self.action = None
         self.next_state = None
-        self.p_void = p
+        self.p_void = p #.unused
         self.mind = mind
         self.input_size = mind.get_input_size()
         self.output_size = mind.get_output_size()
