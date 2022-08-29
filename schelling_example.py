@@ -21,7 +21,9 @@ class Schelling(Environment):
             agent_max_age = 100, agent_range = 2, num_actions = 5,
             same = True, lock = None,
             max_iteration = 5000, name = None, eating_bonus = 1,
-            alpha=1., beta=1., gamma = 1.):
+            alpha=1., beta=1., gamma = 1.,
+            sr_multiplier=1., #.multiply schelling reward by this factor
+            ):
 
         super(Schelling, self).__init__(size, p_hunter, p_prey,
                 prey_reward = prey_reward, stuck_penalty = stuck_penalty,
@@ -35,6 +37,7 @@ class Schelling(Environment):
         self.beta = beta
         self.gamma = gamma
         self.alive_reward = 0.1
+        self.sr_multiplier = sr_multiplier #.
 
     def default(self, agent):
         #. default reward; calculates shelling reward as s-alpha*d (s=same; d=different)
@@ -43,7 +46,7 @@ class Schelling(Environment):
         default = (agent.get_type() * (curr - prev))
         sames = default[default > 0.1].sum()
         diffs = self.alpha * default[default < -0.1].sum()
-        return sames + diffs
+        return (sames + diffs)*self.sr_multiplier #.
 
     def on_free(self, agent):
         self.move(agent)
@@ -129,7 +132,8 @@ def play(map, episodes, iterations, eps=1e-6):
     print("SIMULATION IS FINISHED.")
 
 if __name__ == '__main__':
-    [_, name, iterations, agent_range, prey_reward, max_age, alpha, beta, gamma] = sys.argv
+    [_, name, iterations, agent_range, prey_reward, max_age, alpha, beta, gamma, \
+     p_hunter, p_resurrection, sr_multiplier] = sys.argv
 
     # alpha is for schelling reward
     # beta is for vigilance reward
@@ -152,9 +156,14 @@ if __name__ == '__main__':
 
     society = Schelling
     start_time = time.time()
-    play(society((50, 50), agent_range = int(agent_range),
-        prey_reward = int(prey_reward), name=name,
-        agent_max_age = int(max_age), max_iteration = int(iterations),
-        lock=l, alpha=float(alpha), beta=float(beta), gamma=float(gamma)), 1, iterations)
+    play(society(
+            (50, 50), agent_range = int(agent_range),
+            prey_reward = int(prey_reward), name=name,
+            agent_max_age = int(max_age), max_iteration = int(iterations),
+            lock=l, alpha=float(alpha), beta=float(beta), gamma=float(gamma), 
+            p_hunter=float(p_hunter), p_resurrection=float(p_resurrection), sr_multiplier=float(sr_multiplier)
+            ), 
+        1, #.episodes 
+        iterations)
     seconds = round(time.time() - start_time)
     print(f"------ Experiment duration: {seconds/60:.2f} minutes ------")
