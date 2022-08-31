@@ -106,11 +106,12 @@ class Schelling(Environment):
             victim.die(state, -self.death_penalty)
         
         if killer:
+            #. move victim
+            self.move_victim(victim)
+
             killer.eat(self.gamma * 1) #.extend life of killer by 1 + gamma
             self.move(killer)          #.move killer to position
 
-            #. move victim
-            self.move_victim(victim)
         return -self.death_penalty
 
 def play(map, episodes, iterations, eps=1e-6):
