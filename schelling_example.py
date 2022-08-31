@@ -49,6 +49,7 @@ class Schelling(Environment):
         self.move(agent)
         return self.beta * self.alive_reward + self.default(agent)
 
+    #.nonhostile
     def on_opponent(self, agent, opponent):
         #. _ = self.kill(opponent, killer=agent) #. do not kill opponent
         _ = self.kill_alt(opponent, killer=agent) #. use alternative kill method
@@ -82,23 +83,27 @@ class Schelling(Environment):
             self.move(killer)          #.move killer to position
         return -self.death_penalty
 
+    #.nonhostile
     def kill_alt(self, victim, killer=False):
         """ Alternative method if opponent is not killed
         """
-        # if victim.get_type() in [-1, 1]:
-        #     id = victim.get_id()
-        #     if id in self.id_to_type:
-        #         self.id_to_lives[id].append(victim.get_age())
-        #     else:
-        #         self.id_to_type[id] = victim.get_type()
-        #         self.id_to_lives[id] = [victim.get_age()]
-        # i, j = victim.get_loc()
+        if False:
+            #. original code from kill that will not be executed
+            assert False, 'This portion should not run'
+            if victim.get_type() in [-1, 1]:
+                id = victim.get_id()
+                if id in self.id_to_type:
+                    self.id_to_lives[id].append(victim.get_age())
+                else:
+                    self.id_to_type[id] = victim.get_type()
+                    self.id_to_lives[id] = [victim.get_age()]
+            i, j = victim.get_loc()
 
-        # self.map[i, j] = 0
-        # state = self.get_agent_state(victim)
-        # del self.loc_to_agent[(i, j)]
+            self.map[i, j] = 0
+            state = self.get_agent_state(victim)
+            del self.loc_to_agent[(i, j)]
 
-        # victim.die(state, -self.death_penalty)
+            victim.die(state, -self.death_penalty)
         
         if killer:
             killer.eat(self.gamma * 1) #.extend life of killer by 1 + gamma

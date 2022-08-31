@@ -115,7 +115,8 @@ class Environment:
         agent.set_loc(to)
         self.loc_to_agent[to] = agent
         del self.loc_to_agent[loc]
-
+        
+    #.nonhostile
     def move_victim(self, victim):
         """ move victim to within field view 
         """
