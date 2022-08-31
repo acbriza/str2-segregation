@@ -115,10 +115,11 @@ class Environment:
         agent.set_loc(to)
         self.loc_to_agent[to] = agent
         del self.loc_to_agent[loc]
-        
+
     #.nonhostile
     def move_victim(self, victim):
         """ move victim to within field view 
+            check need to update victim's action and state
         """
         (i, j) = loc = victim.get_loc()
        
@@ -143,8 +144,8 @@ class Environment:
         self.map[i, j] = victim.get_type()
         #. we are sure that loc is empty
         self.loc_to_agent[loc] = victim
-        #.set victim's new location; ensure it is alive; clear decision
         #victim.set_loc(loc)
+        #.set victim's new location; ensure it is alive; clear decision
         victim.respawn(loc)  #.!monitor this 
         #.set new state of victim since location has changed
         victim.set_current_state(self.get_agent_state(victim)) 
